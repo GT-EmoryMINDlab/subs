@@ -1,0 +1,1 @@
+%gets a location with size seedsize by seedsize from an imagefunction [pix]=getloc(seedsize);loc=round(ginput(1));i=loc(1);j=loc(2);pix=zeros(seedsize*seedsize,2);for i1=1:seedsize    for j1=1:seedsize        pix((i1-1)*seedsize+j1,1)=i+(i1-1);        pix((i1-1)*seedsize+j1,2)=j+(j1-1);    endend        
