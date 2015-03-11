@@ -8,6 +8,8 @@ function displaySlices(img, cmap)
 h = figure;
 set(h, 'Position', [420 200 600 500]);
 
+%made a small change here
+
 %get dims of image
 dim = size(img);
 dimZ = dim(3);
