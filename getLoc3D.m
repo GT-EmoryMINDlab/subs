@@ -1,15 +1,22 @@
-function displaySlices(img, cmap)
-% DISPLAYSLICES  Displays a 3D or 4D image in a GUI
+function pix = getLoc3D(img, seedsize)
+% GETLOC3D  Prompt user to select a point from a 3D or 4D image
 %
-%   DISPLAYSLICES(IMG) prepares a GUI to visualize a 3D or 4D image in
-%   slices. The slices shown are those in the 1st and 2nd dimension of IMG.
-%   Sliders are shown to scroll through the  3rd (nominally Z) and 4th
-%   (nominally time) directions.
+%   PIX = GETLOC3D(IMG, SEEDSIZE) prepares a GUI to visualize a 3D or 4D image in
+%   slices (similar to DISPLAYSLICES). Then, the user is prompted to select
+%   a point using crosshairs (via the GINPUT command). A square region with 
+%   side length SEEDSIZE is selected centered on this point. The indices of
+%   points is returned in a N x 3 matrix, where N == SEEDSIZE^2, with the
+%   rows depicting the points coordinate in the X, Y, and Z planes
+%   respectively.
 %
-%   DISPLAYSLICES(IMG, CMAP) uses the colormap defined by CMAP. If this
-%   parameter is not passed, a gray colormap is used by default.
+%   PIX = GETLOC3D(IMG, SEEDSIZE) uses a default SEEDSIZE of 2.
 %
-%   See also GETLOC3D
+%   See also GETLOC, DISPLAYSLICES, GINPUT.
+
+%set SEEDSIZE if not set
+if ~exist('seedsize','var')
+    seedsize = 2;
+end
 
 %main window
 h = figure;
@@ -30,6 +37,7 @@ end
 
 %if we only have a 3D image, create a 4th dimension
 if numel(dim) == 3
+    disp('hi');
     img(:,:,:,1) = img(:,:,:);
     dimT = 1;
     showtime = 0;   %flag to show time slider
@@ -40,22 +48,11 @@ end
 
 curT = 1;               %show first time point initially
 
-%check to see if we have a colormap 'cmap' defined
-if nargin == 1
-    %use gray by default
-    cmap = colormap('gray');
-end
-
-%get max and min of image to use as scaling
-max_img = max(img(:));
-min_img = min(img(:));
-lims = [min_img max_img];
-
 %image panel
-panel1 = uipanel('Parent',h,'Position',[0.05 0.1 0.9 0.9],'BackgroundColor','white');
+panel1 = uipanel('Parent',h,'Position',[0.05 0.15 0.9 0.85],'BackgroundColor','white');
 panax = axes('Units','normal','Position',[0 0 1 1], 'Parent', panel1);
-imagesc(img(:,:,curZ,curT), 'Parent', panax, lims); %middle slice, time 1
-axis image; colormap(cmap);
+imagesc(img(:,:,curZ,curT), 'Parent', panax, 'ButtonDownFcn',@selectPoint); %middle slice, time 1
+axis image; colormap gray;
 
 %slice slider
 if showZ
@@ -91,6 +88,20 @@ if showtime
         'Position',[305 0 50 36]);
 end
 
+%add text to tell users what to do
+txt3 = uicontrol('Parent', h, 'Style', 'text', 'String', ...
+    'Adjust sliders, then click on image to bring up crosshairs to select point.', ...
+    'Position', [120 45 350 20]);
+
+%wait for user to input location
+pix = 0;
+while pix == 0
+    pause(0.1);
+end
+
+disp('Point Selected');
+close(h);
+drawnow;
 
 %Functions for UI elements
 
@@ -101,10 +112,10 @@ end
             return;
         end
         
-        curZ = round(source.Value);
-       imagesc(img(:,:,curZ,curT), 'Parent', panax, lims);
-       axis image; colormap(cmap);
-       drawnow;
+        curZ = ceil(source.Value);
+        imagesc(img(:,:,curZ,curT), 'Parent', panax, 'ButtonDownFcn',@selectPoint);
+        axis image; colormap gray;
+        drawnow;
     end
 
     %update the time based on user scroll
@@ -115,9 +126,27 @@ end
         end
         
         curT = round(source.Value);
-       imagesc(img(:,:,curZ,curT), 'Parent', panax, lims);
-       axis image; colormap(cmap);
-       drawnow;
+        imagesc(img(:,:,curZ,curT), 'Parent', panax, 'ButtonDownFcn',@selectPoint);
+        axis image; colormap gray;
+        drawnow;
+    end
+
+    function selectPoint(source,~)
+        %prompt user for input on screen
+        loc=round(ginput(1));
+        i=loc(1);
+        j=loc(2);
+        
+        %expand based on seedsize
+        pix=zeros(seedsize*seedsize,3);
+
+        for i1=1:seedsize
+            for j1=1:seedsize
+                pix((i1-1)*seedsize+j1,1)=i+(i1-1);
+                pix((i1-1)*seedsize+j1,2)=j+(j1-1);
+                pix((i1-1)*seedsize+j1,3)=curZ;
+            end
+        end    
     end
 
 end
