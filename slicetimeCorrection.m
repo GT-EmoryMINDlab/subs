@@ -32,17 +32,17 @@ end
 img_old = permute(img_old, [4 1 2 3]);
 dim = size(img_old);
 img = zeros(dim);
+vox = 1:dim(1); %time points
 
 %go through image
 for z=1:dim(4)
-    %get interpolation vectors
-    vox = 1:dim(1);
+    %get interpolation vector
     vox_q = vox + (z - Nslices/2)/Nslices;
             
     for y=1:dim(3)
         %interp1 can handle a 2D input (i.e. spatially along a line and 
         %though time, so this speeds it up
-        img(:,:,y,z) = interp1(vox, img_old(:,:,y,z), vox_q); 
+        img(:,:,y,z) = interp1(vox, img_old(:,:,y,z), vox_q, 'spline'); 
     end
 end
 
