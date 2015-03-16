@@ -21,6 +21,7 @@ Nslices = dim(3);
 
 %if Nslices = 1, then return
 if Nslices == 1
+    fprintf('not needed.\n');
     img = img_old;
     return;
 end
