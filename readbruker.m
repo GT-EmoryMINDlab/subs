@@ -1,4 +1,4 @@
-function dat = readbruker(dim)
+function [dat, dim] = readbruker(dim)
 % READBRUKER  Reads in a Bruker 2dseq file
 %
 %   DAT = READBRUKER(DIM) reads in a Bruker 2dseq file with the dimensions
@@ -6,11 +6,12 @@ function dat = readbruker(dim)
 %   The user is prompted to select a 2dseq file using the system file
 %   dialog.
 %
-%   DAT = READBRUKER without any DIM specified will attempt to
+%   [DAT, DIM] = READBRUKER without any DIM input parameter will attempt to
 %   automatically calculate dimensions based on additional header files
 %   (specifically, 'd3proc' and 'method') in the filetree of the selected
 %   '2dseq'. If it cannot automatically find these files, it will prompt
-%   the user to select them.
+%   the user to select them. The second returned parameter will specify the
+%   dimensions that were calculated.
  
 %prompt user to select 2dseq file
 [filename, pathname]=uigetfile('*.*','Select 2dseq data');
