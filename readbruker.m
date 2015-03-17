@@ -29,10 +29,9 @@ if ~exist('dim','var')
     if fid2 == -1  %couldn't automatically open   
         %request user to select d3proc file
         [filename2, pathname2] = uigetfile('d3proc', 'Select corresponding d3proc file');
+        fid2 = fopen(fullfile(pathname2, filename2),'r');
         
-        try
-            fid2 = fopen(fullfile(pathname2, filename2),'r');
-        catch
+        if fid2 == -1   %invalid or couldn't open
             disp('Error - invalid d3proc file');
             dat = -1;
             return;
@@ -92,10 +91,9 @@ if ~exist('dim','var')
     if fid2 == -1   %couldn't automatically find
         %request user to select method file
         [filename2, pathname2] = uigetfile('method', 'Select corresponding method file');
+        fid2 = fopen(fullfile(pathname2, filename2),'r');
         
-        try
-            fid2 = fopen(fullfile(pathname2, filename2),'r');
-        catch
+        if fid2 == -1   %invalid or couldn't open
             disp('Error - invalid method file');
             dat = -1;
             return;
