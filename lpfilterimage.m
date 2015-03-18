@@ -7,9 +7,12 @@ function data_lf = lpfilterimage(data, tr, cutpt, dim, use_parallel)
 %   is a multidimensional matrix with the same size as DATA.
 %
 %   DATA_LF = LPFILTERIMAGE(___, USE_PARALLEL) specifies whether to use a
-%   single thread (default), or to use the maximum number of threads
-%   possible to speed up the computer. Set USE_PARALLEL = 1 to use multiple
-%   threads.
+%   single thread (default), multiple threads using the default parallel
+%   pool, or GPU acceleration, depending on the value of USE_PARALLEL:
+%
+%       Single CPU      0 or 'cpu' (default)
+%       Parallel        1 or 'par'
+%       GPU             2 or 'gpu'
 %
 %   See also BUTTER, LPFILTER
 
@@ -34,7 +37,7 @@ data_lf=zeros(dim(1,1),dim(1,2),dim(1,3),dim(1,4));
 switch use_parallel
     
     %single CPU
-    case 0
+    case {0, 'cpu'}
         for x=1:dim(1,1)
             for y=1:dim(1,2)
                 for z=1:dim(1,3)
@@ -52,27 +55,50 @@ switch use_parallel
         
         
     %multiple threads
-    case 1
+    case {1, 'par'}
         dimY = dim(2);
         dimZ = dim(3);
         
         parfor x=1:dim(1)
-            %need to set hd within the parfor loop
-            hd=dfilt.df2t(b,a);
-            
             for y=1:dimY
                 for z=1:dimZ
                     voxel_tc = squeeze(data(x,y,z,:));   %voxel time series
                     if(voxel_tc(1)~=0) 
                         voxel_tc=(voxel_tc-mean(voxel_tc))/std(voxel_tc);
-                        newtc=filter(hd,voxel_tc);
+                        newtc = filter(b,a,voxel_tc);
                         data_lf(x,y,z,:)=squeeze(newtc);
-                    else
-                        data_lf(x,y,z,:)=0;
                     end
                 end
             end
         end
+        
+    %GPU accelerated
+    case {2,'gpu'}
+        %convert to GPU array
+        data_gpu = gpuArray(data);
+        
+        %reshape to be a matrix of size dimX*dimY*dimZ x dimT
+        data_rs = reshape(data_gpu, [prod(dim(1:3)) dim(4)]);
+        
+        %find all indexes where the first voxel is non zero
+        inds = find(data_rs(:,1) ~= 0);
+        
+        %get non-zero rows
+        data_rs_nonzero = data_rs(inds,:);
+        
+        %normalize using z-score along rows
+        data_rs_nonzero = zscore(data_rs_nonzero,[],2);
+
+        %apply filter to non-zero rows
+        data_lf_rs_nonzero = filter(b,a,data_rs_nonzero,[],2);
+        
+        %store in lowpass filter array
+        data_lf_rs = zeros(size(data_rs),'gpuArray');
+        data_lf_rs(inds,:) = data_lf_rs_nonzero;
+        
+        %convert back to CPU memory
+        data_lf = gather(reshape(data_lf_rs, dim));
+
         
 end
 
