@@ -6,9 +6,11 @@ function img_new = detrendimage(img, use_parallel)
 %   matrix with the same dimensions as IMG.
 %
 %   IMG_NEW = DETRENDIMAGE(IMG, USE_PARALLEL) specifies whether to use a
-%   single thread (default), or to use the maximum number of threads
-%   possible to speed up the computer. Set USE_PARALLEL = 1 to use multiple
-%   threads.
+%   single thread (default) or multiple threads using the default parallel
+%   pool, depending on the value of USE_PARALLEL:
+%
+%       Single CPU      0 or 'cpu' (default)
+%       Parallel        1 or 'par'
 %
 %   See also DETREND
 
@@ -31,7 +33,7 @@ img_new=zeros(DimY, DimX, DimZ, DimTime);
 switch use_parallel
     
     %single CPU
-    case 0
+    case {0, 'cpu'}
         for z=1:DimZ
             for y=1:DimY
                 for x=1:DimX
@@ -43,7 +45,7 @@ switch use_parallel
         end
         
     %parallel threads
-    case 1
+    case {1, 'par'}
         parfor z=1:DimZ
             for y=1:DimY
                 for x=1:DimX

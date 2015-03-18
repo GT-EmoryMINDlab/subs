@@ -9,9 +9,11 @@ function img = combine_anat_corr_lag(img_old, cc, ccthresh, imgthresh, use_paral
 %   for the cross-correlation and image signals, respectively.
 %
 %   IMG = COMBINE_ANAT_CORR_LAG(___, USE_PARALLEL) specifies whether to use a
-%   single thread (default), or to use the maximum number of threads
-%   possible to speed up the computer. Set USE_PARALLEL = 1 to use multiple
-%   threads.
+%   single thread (default) or multiple threads using the default parallel
+%   pool, depending on the value of USE_PARALLEL:
+%
+%       Single CPU      0 or 'cpu' (default)
+%       Parallel        1 or 'par'
 %
 %   See also CORR_LAGS_WITH_REFTC
 
@@ -52,7 +54,7 @@ img=zeros(dimY, dimX, dimZ, dimL);
 switch use_parallel
     
     %single CPU
-    case 0
+    case {0, 'cpu'}
         for t=1:dimL
             for z=1:dimZ
                 for y=1:dimY
@@ -69,7 +71,7 @@ switch use_parallel
         
         
     %parallel CPU
-    case 1
+    case {1, 'par'}
         parfor t=1:dimL
             for z=1:dimZ
                 for y=1:dimY

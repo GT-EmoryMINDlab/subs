@@ -13,9 +13,11 @@ function cc = corr_lags_with_reftc(reftimecourse, img, maxlag, use_parallel)
 %   -MAXLAG to +MAXLAG. CC is a 4D matrix with size (X,Y,Z,2*MAXLAG+1).
 %
 %   CC = CORR_LAGS_WITH_REFTC(___, USE_PARALLEL) specifies whether to use a
-%   single thread (default), or to use the maximum number of threads
-%   possible to speed up the computer. Set USE_PARALLEL = 1 to use multiple
-%   threads.
+%   single thread (default) or multiple threads using the default parallel
+%   pool, depending on the value of USE_PARALLEL:
+%
+%       Single CPU      0 or 'cpu' (default)
+%       Parallel        1 or 'par'
 %
 %   See also XCORR, CORR_WITH_REFTC
 
@@ -42,7 +44,7 @@ cc = zeros(dim(1), dim(2), dim(3), dimL);
 switch use_parallel
     
     %single CPU
-    case 0     
+    case {0, 'cpu'}     
        for x=1:dim(1)
             for y=1:dim(2)
                 for z=1:dim(3)
@@ -53,7 +55,7 @@ switch use_parallel
        end
 
     %parallel cpu   
-    case 1
+    case {1, 'par'}
         dimY = dim(2);
         dimZ = dim(3);
         parfor x=1:dim(1)
