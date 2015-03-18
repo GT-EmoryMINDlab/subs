@@ -1,4 +1,4 @@
-function img_new =thresholdimage(img, threshold)
+function [img_new, threshold] = thresholdimage(img, threshold)
 % THRESHOLDIMAGE  Thresholds a 3D/4D image
 %
 %   IMG_NEW = THRESHOLDIMAGE(IMG) thresholds the 3D or 4D image IMG. The
